@@ -36,6 +36,15 @@
 ### User Story
 > As a [user type], I want to [action] so that [benefit].
 
+### User Flow
+```mermaid
+sequenceDiagram
+    participant User
+    participant System
+    User->>System: Action
+    System-->>User: Response
+```
+
 ### Current State
 [How does the system work today? What exists? What doesn't?]
 

@@ -10,8 +10,9 @@ RED='\033[0;31m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 SESSIONS_DIR="docs/sessions"
-TEMPLATE="$SESSIONS_DIR/template.md"
+TEMPLATE="$SCRIPT_DIR/../templates/session.md"
 
 echo -e "${BLUE}=== Create Session from GitHub Issue ===${NC}\n"
 

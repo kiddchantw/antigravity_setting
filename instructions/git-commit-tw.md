@@ -101,6 +101,86 @@ Refs: #789
   - `*.g.dart`, `*.freezed.dart` (generated files)
 - **不要自動 push**：除非使用者明確要求
 
+### 處理多個不相關的變更
+
+當 `git status` 顯示多個不相關的變更時，應該分開提交：
+
+#### 1. 識別變更類型
+使用 `git diff <file>` 檢查每個檔案的變更內容，判斷是否相關：
+```bash
+git diff docs/INDEX-architecture.md
+git diff lib/api/openapi_config.dart
+```
+
+#### 2. 分類變更
+將變更分為不同類別：
+- **當前功能相關**：與正在開發的功能直接相關
+- **文檔更新**：文檔修正、格式調整
+- **配置變更**：OpenAPI、依賴更新等
+- **錯字修正**：純文字修正
+- **意外變更**：不需要的編輯
+
+#### 3. 處理策略
+
+**A. 還原不需要的變更**
+```bash
+git restore <file1> <file2>
+```
+
+**B. 分別提交相關變更**
+```bash
+# 第一個 commit：當前功能
+git add lib/services/new_service.dart lib/providers/new_provider.dart
+git commit -m "feat(feature): 實作新功能"
+
+# 第二個 commit：文檔更新
+git add docs/INDEX-product.md
+git commit -m "docs: 更新產品功能索引"
+
+# 第三個 commit：錯字修正
+git add docs/sessions/2025-11/21-session.md
+git commit -m "docs: 修正錯字"
+```
+
+**C. 使用互動式暫存（進階）**
+```bash
+git add -p <file>  # 選擇性暫存檔案的部分變更
+```
+
+#### 4. 提交順序建議
+1. 功能實作（feat/fix）
+2. 重構（refactor）
+3. 文檔更新（docs）
+4. 配置變更（chore）
+5. 錯字修正（docs）
+
+#### 5. 範例場景
+
+**場景：開發新功能時發現其他檔案有變更**
+```bash
+# 檢查狀態
+git status
+
+# 發現：
+# - lib/services/new_service.dart (新功能)
+# - docs/INDEX-product.md (簡化格式)
+# - docs/sessions/old-session.md (錯字修正)
+
+# 處理方式：
+# 1. 先提交新功能
+git add lib/services/new_service.dart
+git commit -m "feat(api): 新增服務層"
+
+# 2. 確認文檔簡化是否需要
+git diff docs/INDEX-product.md
+# 如果不需要：git restore docs/INDEX-product.md
+# 如果需要：git add docs/INDEX-product.md && git commit -m "docs: 簡化產品索引格式"
+
+# 3. 提交錯字修正
+git add docs/sessions/old-session.md
+git commit -m "docs: 修正 session 文件錯字"
+```
+
 ## Flutter 專案特定注意事項
 
 ### 常見 Scope
