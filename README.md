@@ -160,6 +160,20 @@ Run: .agent/scripts/create-session.sh
 - **Gemini**: 直接輸入 slash command（例如 `/建立session`）
 - **其他 AI**: 手動執行對應的 script（例如 `.agent/scripts/create-session.sh`）
 
+**快速建立 Session**：
+```bash
+# 直接傳入 Goal（需求描述），腳本會自動生成檔名
+.agent/scripts/create-session.sh 實作離線同步功能
+
+# 腳本會：
+# 1. 將「實作離線同步功能」寫入 Goal 段落
+# 2. 自動生成 feature-name（例如：offline-sync）
+# 3. 建立 sessions/YYYY-MM/DD-offline-sync.md
+# 4. 你可以直接在 session 中規劃實作細節
+
+# 如果想自訂檔名，腳本會提示你輸入
+```
+
 ---
 
 ## 🛠️ Scripts (腳本工具)
@@ -179,6 +193,12 @@ Run: .agent/scripts/create-session.sh
 
 # 或從子專案執行
 ../.agent/scripts/create-session.sh
+
+# 快速建立：直接傳入 Goal（需求描述）
+./.agent/scripts/create-session.sh 實作使用者登入功能
+# 會自動生成檔名（例如：user-login）
+# 建立 sessions/YYYY-MM/DD-user-login.md
+# Goal 段落已填入「實作使用者登入功能」
 ```
 
 ---
@@ -212,7 +232,11 @@ Run: .agent/scripts/create-session.sh
 
 ### 2. 開發新功能
 ```bash
-# 1. 建立 Session
+# 方式 1: 快速建立（推薦）
+# 直接傳入 Goal（需求描述），腳本會自動生成檔名並填入 Goal
+./.agent/scripts/create-session.sh 實作商品搜尋功能
+
+# 方式 2: 互動式建立
 /建立session  # Gemini
 # 或
 ./.agent/scripts/create-session.sh  # 其他 AI

@@ -54,7 +54,7 @@ fi
 
 # Check if argument provided - if yes, create custom session directly
 if [ $# -gt 0 ]; then
-    feature_name="$*"
+    goal="$*"
     choice=2
 else
     # Check if gh is installed
@@ -227,8 +227,23 @@ case $choice in
 
     2)
         # Manual creation
-        # If feature_name not set from argument, ask for it
-        if [ -z "$feature_name" ]; then
+        # Check if goal was provided as argument
+        if [ -n "$goal" ]; then
+            # Goal provided via argument - generate feature_name from goal
+            echo -e "${BLUE}Goal: $goal${NC}"
+            
+            # Auto-generate feature_name from goal (take first 3-5 meaningful words)
+            feature_name=$(echo "$goal" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9 ]//g' | awk '{for(i=1;i<=5 && i<=NF;i++) printf "%s-", $i}' | sed 's/-$//')
+            
+            echo -e "${GREEN}Auto-generated feature name: $feature_name${NC}"
+            echo ""
+            read -p "Press Enter to continue or type a custom feature name: " custom_name
+            
+            if [ -n "$custom_name" ]; then
+                feature_name="$custom_name"
+            fi
+        else
+            # No argument provided - ask for feature_name and goal
             echo ""
             read -p "Feature name (e.g., offline-sync): " feature_name
 
@@ -236,11 +251,11 @@ case $choice in
                 echo -e "${RED}Feature name cannot be empty${NC}"
                 exit 1
             fi
-        fi
 
-        # Ask for goal
-        echo ""
-        read -p "Goal (one sentence, what are we trying to achieve?): " goal
+            # Ask for goal
+            echo ""
+            read -p "Goal (one sentence, what are we trying to achieve?): " goal
+        fi
 
         current_date=$(date +%d)
         current_month=$(date +%Y-%m)
