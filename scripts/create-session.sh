@@ -16,32 +16,40 @@ TEMPLATE="$SCRIPT_DIR/../templates/session.md"
 
 echo -e "${BLUE}=== Create Session from GitHub Issue ===${NC}\n"
 
-# Check if gh is installed
-if ! command -v gh &> /dev/null; then
-    echo -e "${RED}Error: GitHub CLI (gh) is not installed${NC}"
-    echo "Install from: https://cli.github.com/"
-    exit 1
-fi
-
-# Check if authenticated
-if ! gh auth status &> /dev/null; then
-    echo -e "${YELLOW}Not authenticated with GitHub CLI${NC}"
-    echo "Run: gh auth login"
-    exit 1
-fi
-
 # Check if template exists
 if [ ! -f "$TEMPLATE" ]; then
     echo -e "${RED}Error: Template not found at $TEMPLATE${NC}"
     exit 1
 fi
 
-# Option 1: Create from Issue
-# Option 2: Create manually
-echo -e "${YELLOW}How do you want to create the session?${NC}"
-echo "1) From GitHub Issue (fetch issue details)"
-echo "2) Manual (just create empty session)"
-read -p "Choice: " choice
+# Check if argument provided - if yes, create custom session directly
+if [ $# -gt 0 ]; then
+    feature_name="$*"
+    choice=2
+else
+    # Check if gh is installed
+    if ! command -v gh &> /dev/null; then
+        echo -e "${RED}Error: GitHub CLI (gh) is not installed${NC}"
+        echo "Install from: https://cli.github.com/"
+        exit 1
+    fi
+
+    # Check if authenticated
+    if ! gh auth status &> /dev/null; then
+        echo -e "${YELLOW}Not authenticated with GitHub CLI${NC}"
+        echo "Run: gh auth login"
+        exit 1
+    fi
+
+    # Option 1: Create from Issue
+    # Option 2: Create manually
+    # Option 3: Create empty
+    echo -e "${YELLOW}How do you want to create the session?${NC}"
+    echo "1) From GitHub Issue (fetch issue details)"
+    echo "2) Manual (create session with goal prompt)"
+    echo "3) Empty (create empty template only)"
+    read -p "Choice: " choice
+fi
 
 case $choice in
     1)
@@ -187,12 +195,15 @@ case $choice in
 
     2)
         # Manual creation
-        echo ""
-        read -p "Feature name (e.g., offline-sync): " feature_name
-
+        # If feature_name not set from argument, ask for it
         if [ -z "$feature_name" ]; then
-            echo -e "${RED}Feature name cannot be empty${NC}"
-            exit 1
+            echo ""
+            read -p "Feature name (e.g., offline-sync): " feature_name
+
+            if [ -z "$feature_name" ]; then
+                echo -e "${RED}Feature name cannot be empty${NC}"
+                exit 1
+            fi
         fi
 
         # Ask for goal
@@ -222,6 +233,40 @@ case $choice in
         fi
 
         echo -e "\n${GREEN}✅ Session created: $session_file${NC}"
+
+        # Open in editor
+        read -p $'\n'"Open in editor? (y/n): " open_editor
+        if [ "$open_editor" = "y" ]; then
+            ${EDITOR:-vim} "$session_file"
+        fi
+        ;;
+
+    3)
+        # Empty template creation
+        echo ""
+        read -p "Feature name (e.g., offline-sync): " feature_name
+
+        if [ -z "$feature_name" ]; then
+            echo -e "${RED}Feature name cannot be empty${NC}"
+            exit 1
+        fi
+
+        current_date=$(date +%d)
+        current_month=$(date +%Y-%m)
+
+        # Slugify
+        slug=$(echo "$feature_name" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g' | sed 's/--*/-/g' | sed 's/^-//' | sed 's/-$//')
+
+        session_file="$SESSIONS_DIR/$current_month/${current_date}-${slug}.md"
+
+        # Create month directory
+        mkdir -p "$SESSIONS_DIR/$current_month"
+
+        # Copy template without any modifications
+        cp "$TEMPLATE" "$session_file"
+
+        echo -e "\n${GREEN}✅ Empty session created: $session_file${NC}"
+        echo -e "${YELLOW}Template is ready for editing${NC}"
 
         # Open in editor
         read -p $'\n'"Open in editor? (y/n): " open_editor

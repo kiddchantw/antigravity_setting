@@ -5,7 +5,7 @@
 **Duration**: [Estimated/Actual] hours
 **Issue**: #XX
 **Contributors**: @username, Claude AI
-
+**Branch**: [new-branch-name]
 **Tags**: <!-- 詳見 GUIDE.md -->
 <!-- #decisions, #architecture, #api, #product, #infrastructure, #refactor -->
 
