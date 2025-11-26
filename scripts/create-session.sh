@@ -11,7 +11,6 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-SESSIONS_DIR="docs/sessions"
 TEMPLATE="$SCRIPT_DIR/../templates/session.md"
 
 echo -e "${BLUE}=== Create Session from GitHub Issue ===${NC}\n"
@@ -19,6 +18,37 @@ echo -e "${BLUE}=== Create Session from GitHub Issue ===${NC}\n"
 # Check if template exists
 if [ ! -f "$TEMPLATE" ]; then
     echo -e "${RED}Error: Template not found at $TEMPLATE${NC}"
+    exit 1
+fi
+
+# Auto-detect sessions directory (in current working directory)
+SESSIONS_DIR=""
+
+# Priority 1: Check if sessions/ exists in current directory
+if [ -d "sessions" ]; then
+    SESSIONS_DIR="sessions"
+    echo -e "${GREEN}Using sessions directory: $SESSIONS_DIR${NC}"
+else
+    # Priority 2: Check docs*/ directories for sessions subdirectory
+    for dir in docs*/; do
+        # Check if it's a valid directory and not a glob pattern
+        if [ -d "$dir" ] && [ "$dir" != "docs*/" ]; then
+            if [ -d "${dir}sessions" ]; then
+                SESSIONS_DIR="${dir}sessions"
+                echo -e "${GREEN}Using sessions directory: $SESSIONS_DIR${NC}"
+                break
+            fi
+        fi
+    done
+fi
+
+# Error if no sessions directory found
+if [ -z "$SESSIONS_DIR" ]; then
+    echo -e "${RED}Error: No sessions directory found in current directory${NC}"
+    echo -e "${YELLOW}Please create one of the following:${NC}"
+    echo "  - sessions/ (in current directory)"
+    echo "  - docs/sessions/"
+    echo "  - docs_web/sessions/"
     exit 1
 fi
 
@@ -186,7 +216,9 @@ case $choice in
             echo -e "\n${YELLOW}Next steps:${NC}"
             echo "1. Fill in Plan section (approach, decisions)"
             echo "2. Fill in Implementation section (phases, tasks)"
-            echo "3. Start coding!"
+            echo "3. If you need a new branch, update the Branch field in session and run:"
+            echo -e "   ${GREEN}.agent/scripts/create-branch.sh $session_file${NC}"
+            echo "4. Start coding!"
             echo ""
             echo "Reference in commits:"
             echo -e "${GREEN}git commit -m \"feat: implement feature\n\nPart of $session_file\"${NC}"
@@ -239,23 +271,29 @@ case $choice in
         if [ "$open_editor" = "y" ]; then
             ${EDITOR:-vim} "$session_file"
         fi
+
+        echo -e "\n${YELLOW}Next steps:${NC}"
+        echo "1. Fill in the session details (Goal, Context, Plan)"
+        echo "2. If you need a new branch, update the Branch field and run:"
+        echo -e "   ${GREEN}.agent/scripts/create-branch.sh $session_file${NC}"
+        echo "3. Start coding!"
         ;;
 
     3)
         # Empty template creation
         echo ""
-        read -p "Feature name (e.g., offline-sync): " feature_name
-
-        if [ -z "$feature_name" ]; then
-            echo -e "${RED}Feature name cannot be empty${NC}"
-            exit 1
-        fi
+        read -p "Feature name (e.g., offline-sync) [leave empty for timestamp only]: " feature_name
 
         current_date=$(date +%d)
         current_month=$(date +%Y-%m)
 
-        # Slugify
-        slug=$(echo "$feature_name" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g' | sed 's/--*/-/g' | sed 's/^-//' | sed 's/-$//')
+        if [ -z "$feature_name" ]; then
+            # If empty, use timestamp
+            slug=$(date +%H%M%S)
+        else
+            # Slugify
+            slug=$(echo "$feature_name" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g' | sed 's/--*/-/g' | sed 's/^-//' | sed 's/-$//')
+        fi
 
         session_file="$SESSIONS_DIR/$current_month/${current_date}-${slug}.md"
 
@@ -273,6 +311,12 @@ case $choice in
         if [ "$open_editor" = "y" ]; then
             ${EDITOR:-vim} "$session_file"
         fi
+
+        echo -e "\n${YELLOW}Next steps:${NC}"
+        echo "1. Fill in the session details (Goal, Context, Plan)"
+        echo "2. If you need a new branch, update the Branch field and run:"
+        echo -e "   ${GREEN}.agent/scripts/create-branch.sh $session_file${NC}"
+        echo "3. Start coding!"
         ;;
 
     *)

@@ -167,6 +167,7 @@ Run: .agent/scripts/create-session.sh
 | 腳本 | 功能 |
 |------|------|
 | `create-session.sh` | 建立新的開發 Session |
+| `create-branch.sh` | 從 Session 建立新的 Git Branch |
 | `archive-session.sh` | 封存完成的 Session |
 | `update-changelog.sh` | 更新專案 Changelog |
 | `init-docs.sh` | 初始化文檔結構 |
@@ -216,12 +217,17 @@ Run: .agent/scripts/create-session.sh
 # 或
 ./.agent/scripts/create-session.sh  # 其他 AI
 
-# 2. 引用相關指令
+# 2. 填寫 Session 內容並決定是否需要新 branch
+# - 如果不需要新 branch：直接在當前 branch 開發
+# - 如果需要新 branch：在 session 中更新 Branch 欄位，然後執行：
+./.agent/scripts/create-branch.sh docs/sessions/YYYY-MM/DD-feature-name.md
+
+# 3. 引用相關指令
 @flutter-expert  # 如果是 Flutter 開發
 
-# 3. 開發...
+# 4. 開發...
 
-# 4. 完成後封存
+# 5. 完成後封存
 /封存session  # Gemini
 # 或
 ./.agent/scripts/archive-session.sh  # 其他 AI
