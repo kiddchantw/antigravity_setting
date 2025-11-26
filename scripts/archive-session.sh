@@ -13,44 +13,33 @@ NC='\033[0m' # No Color
 
 echo -e "${BLUE}=== Session Completion Tool ===${NC}\n"
 
-# 1. Find all in-progress session files
-echo -e "${YELLOW}Searching for 'In Progress' sessions...${NC}"
-sessions=()
-while IFS= read -r file; do
-    if grep -q "Status\*\*: 🔄 In Progress" "$file"; then
-        sessions+=("$file")
-    fi
-done < <(find "$SESSIONS_DIR" -type f -name "*.md" ! -name "README.md" ! -name "template.md" | sort -r)
-
-
-if [ ${#sessions[@]} -eq 0 ]; then
-    echo -e "${GREEN}No 'In Progress' sessions found. All clean!${NC}"
-    exit 0
-fi
-
-# Display sessions with numbers
-echo -e "\n${YELLOW}Available sessions to complete:${NC}"
-for i in "${!sessions[@]}"; do
-    filepath="${sessions[$i]}"
-    relpath="${filepath#$SESSIONS_DIR/}"
-    echo "  [$i] $relpath"
-done
-
-echo ""
-read -p "Select session number to complete (or 'q' to quit): " selection
-
-if [ "$selection" = "q" ]; then
-    echo "Cancelled."
-    exit 0
-fi
-
-# Validate selection
-if ! [[ "$selection" =~ ^[0-9]+$ ]] || [ "$selection" -ge "${#sessions[@]}" ]; then
-    echo -e "${RED}Invalid selection${NC}"
+# 1. Check if session file path is provided as argument
+if [ -z "$1" ]; then
+    echo -e "${RED}Error: Please provide a session file path${NC}"
+    echo "Usage: $0 <session-file-path>"
+    echo "Example: $0 docs/sessions/2025-11/26-fix-product-api-locale.md"
     exit 1
 fi
 
-session_file="${sessions[$selection]}"
+# Session file path provided as argument
+session_file="$1"
+
+# Validate file exists
+if [ ! -f "$session_file" ]; then
+    echo -e "${RED}Error: File not found: $session_file${NC}"
+    exit 1
+fi
+
+# Validate it's a markdown file
+if [[ ! "$session_file" =~ \.md$ ]]; then
+    echo -e "${RED}Error: File must be a .md file${NC}"
+    exit 1
+fi
+
+# Convert to absolute path for project type detection
+session_file_abs=$(cd "$(dirname "$session_file")" && pwd)/$(basename "$session_file")
+
+echo -e "${YELLOW}Processing session: $session_file${NC}\n"
 session_filename=$(basename "$session_file")
 session_relpath="${session_file#docs/}"
 date=$(grep "^\*\*Date\*\*:" "$session_file" | sed 's/.*: //')
@@ -100,21 +89,8 @@ EOF
     echo -e "   ---\n"
 fi
 
-if [[ $tags == *#api* ]]; then
-    prompt_shown=true
-    echo -e "${GREEN}3. Update docs/INDEX-api.md${NC}"
-    echo "   Template:"
-    echo "   ---"
-    cat <<EOF
-### [$date] [API Change Title]
-- **新增/修改**: [e.g., POST /api/sync/batch]
-- **Breaking Change**: 是/否
-- **完整說明**: [Session]($session_relpath)
-EOF
-    echo -e "   ---\n"
-fi
-
-if [[ $tags == *#product* ]]; then
+# Check for #product or #screen (including #screen=xxx format)
+if [[ $tags =~ \#product ]] || [[ $tags =~ \#screen(=|,|$) ]]; then
     prompt_shown=true
     issue_num=$(grep "^\*\*Issue\*\*:" "$session_file" | sed 's/.*#//' | tr -d '[:space:]')
     issue_link_placeholder="[#$issue_num](https://github.com/.../issues/$issue_num)"
@@ -122,23 +98,49 @@ if [[ $tags == *#product* ]]; then
         issue_link_placeholder="[#XX](...)"
     fi
 
+    # Extract API endpoints from session file
+    # Look for patterns like: GET /api/v1/..., POST /api/v1/..., etc.
+    api_endpoints=$(grep -o -E '(GET|POST|PUT|DELETE|PATCH) /api/[^ ]*' "$session_file" | sort -u)
+
+    # Format API endpoints for display
+    api_display=""
+    if [ -n "$api_endpoints" ]; then
+        # Convert to comma-separated list with backticks
+        api_display=$(echo "$api_endpoints" | awk '{printf "`%s`, ", $0}' | sed 's/, $//')
+        api_display="<br>API: $api_display"
+    fi
+
     # Detect project type based on session path
-    if [[ $session_file == *"a126_kompraa_flutter"* ]]; then
+    if [[ $session_file_abs == *"a126_kompraa_flutter"* ]]; then
         # Flutter project - detailed table format
-        echo -e "${GREEN}4. Update a126_kompraa_flutter/docs/INDEX-product.md${NC}"
+        echo -e "${GREEN}3. Update a126_kompraa_flutter/docs/INDEX-product.md${NC}"
         echo "   Template (add to appropriate Screen section):"
         echo "   ---"
+        if [ -n "$api_endpoints" ]; then
+            echo "   Detected APIs in session:"
+            echo "$api_endpoints" | while read -r api; do
+                echo "     - $api"
+            done
+            echo ""
+        fi
         cat <<EOF
 | 功能名稱 | 說明 | Session |
 | --- | --- | --- |
-| [Feature Name] | [功能描述，包含使用的 API]<br>API: \`[METHOD] /api/v1/...\` | [$session_filename]($session_relpath) |
+| [Feature Name] | [功能描述]$api_display | [$session_filename]($session_relpath) |
 EOF
         echo -e "   ---\n"
     else
         # Web project - simple checkbox format
-        echo -e "${GREEN}4. Update docs_web/INDEX-product.md${NC}"
+        echo -e "${GREEN}3. Update docs_web/INDEX-product.md${NC}"
         echo "   Template (add to 功能狀態總覽 section):"
         echo "   ---"
+        if [ -n "$api_endpoints" ]; then
+            echo "   Detected APIs in session:"
+            echo "$api_endpoints" | while read -r api; do
+                echo "     - $api"
+            done
+            echo ""
+        fi
         cat <<EOF
 - [x] **[Feature Name]**: [Brief description] (v1.x)
 EOF
@@ -161,6 +163,9 @@ if [ "$prompt_shown" = false ]; then
     if grep -q -i -E "POST /api|GET /api|API endpoint" "$session_file"; then
         suggestions+="#api "
     fi
+    if grep -q -i -E "screen|page|頁面|畫面|UI|component|widget|螢幕|Screen|Page|Component|Widget" "$session_file"; then
+        suggestions+="#screen "
+    fi
     if grep -q -i "Issue.*#[0-9]\+\|feature\|功能" "$session_file" && ! grep -q -i "#refactor\|#infrastructure" "$session_file"; then
         suggestions+="#product "
     fi
@@ -180,9 +185,6 @@ if [ "$prompt_shown" = false ]; then
     fi
 fi
 
-echo ""
-read -p "Press Enter to continue and mark the session as 'Completed'..."
-
 # 5. Update session status
 echo -e "\n${YELLOW}Updating session status to '✅ Completed'...${NC}"
 # Use a temp file for sed to work reliably on macOS
@@ -201,5 +203,14 @@ echo ""
 echo "Next steps:"
 echo "1. Manually update the INDEX files as prompted above."
 echo "2. Update the 'Completed Date' and 'Duration' in the session file."
-echo "3. When ready to release, run: ${GREEN}./scripts/update-changelog.sh${NC}"
-echo "4. Commit your changes."
+echo "3. Commit your changes."
+
+# 8. Automatically run update-changelog.sh
+echo -e "\n${BLUE}=== Auto-updating CHANGELOG ===${NC}"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [ -f "$SCRIPT_DIR/update-changelog.sh" ]; then
+    "$SCRIPT_DIR/update-changelog.sh"
+else
+    echo -e "${YELLOW}⚠️  update-changelog.sh not found in $SCRIPT_DIR${NC}"
+    echo "Please run it manually: ./scripts/update-changelog.sh"
+fi
