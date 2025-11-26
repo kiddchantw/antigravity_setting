@@ -1,5 +1,22 @@
 # .agent Directory
 
+## 前置作業 
+> 
+> 請確保本地專案中存在 `.agent` 資料夾。
+> 
+> - **位置**: 專案根目錄 (例如: `/Users/kiddchan/Desktop/laraDock/a126/.agent`)
+> - **用途**: 存放 AI Agent 的配置、指令、工作流程和模板
+> - **必要性**: Antigravity 會自動載入此目錄中的 `instructions/` 和 `workflows/`
+> 
+> **正確使用流程**：
+> ```bash
+> # 1. 先建立 .agent 資料夾
+> mkdir -p .agent/{instructions,workflows,scripts,templates}
+> 
+> # 2. 然後 git clone 此專案
+> git clone <repository-url>
+> ```
+
 本目錄包含跨 AI Agent 通用的配置、指令、工作流程和模板。
 
 ## 📂 目錄結構

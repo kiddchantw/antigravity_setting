@@ -122,19 +122,28 @@ if [[ $tags == *#product* ]]; then
         issue_link_placeholder="[#XX](...)"
     fi
 
-    echo -e "${GREEN}4. Update docs/INDEX-product.md${NC}"
-    echo "   Template:"
-    echo "   ---"
-    cat <<EOF
-#### [Feature Name]
-- **狀態**: ✅ Production
-- **版本**: v1.x.0
-- **功能描述**: [Brief description of the feature]
-- **相關**:
-  - Session: [$session_filename]($session_relpath)
-  - Issue: $issue_link_placeholder
+    # Detect project type based on session path
+    if [[ $session_file == *"a126_kompraa_flutter"* ]]; then
+        # Flutter project - detailed table format
+        echo -e "${GREEN}4. Update a126_kompraa_flutter/docs/INDEX-product.md${NC}"
+        echo "   Template (add to appropriate Screen section):"
+        echo "   ---"
+        cat <<EOF
+| 功能名稱 | 說明 | Session |
+| --- | --- | --- |
+| [Feature Name] | [功能描述，包含使用的 API]<br>API: \`[METHOD] /api/v1/...\` | [$session_filename]($session_relpath) |
 EOF
-    echo -e "   ---\n"
+        echo -e "   ---\n"
+    else
+        # Web project - simple checkbox format
+        echo -e "${GREEN}4. Update docs_web/INDEX-product.md${NC}"
+        echo "   Template (add to 功能狀態總覽 section):"
+        echo "   ---"
+        cat <<EOF
+- [x] **[Feature Name]**: [Brief description] (v1.x)
+EOF
+        echo -e "   ---\n"
+    fi
 fi
 
 # 4. If no tags, analyze content and suggest

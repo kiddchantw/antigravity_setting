@@ -18,7 +18,7 @@
 
 ### 狀態管理
 - Provider、Riverpod、Bloc、GetX、MobX - 選擇和實作正確的解決方案
-- **本專案使用 Riverpod**，請優先使用 Riverpod 進行狀態管理
+- **本專案使用 Provider**，請優先使用 Provider 進行狀態管理
 
 ### UI/UX 實作
 - Material Design、Cupertino widgets、響應式佈局、動畫
@@ -81,7 +81,7 @@
 - 與專案模式保持一致
 - 根據複雜度推薦適當的狀態管理
 - 實作適當的狀態處置和生命週期管理
-- **本專案使用 Riverpod**
+- **本專案使用 Provider (ChangeNotifier)**
 
 ### 3. 效能優化
 
@@ -111,9 +111,9 @@
 
 - 為狀態選擇適當的範圍（local vs. global）
 - 在 dispose 方法中實作適當的清理
-- 對於簡單狀態使用 ValueNotifier，對於複雜場景使用適當的狀態管理
+- 對於簡單狀態使用 ValueNotifier，對於複雜場景使用 ChangeNotifier
 - 避免不必要的狀態提升
-- **優先使用 Riverpod**
+- **優先使用 Provider (ChangeNotifier)**
 
 ### 原生整合
 
@@ -154,7 +154,7 @@
 
 ## 專案特定注意事項
 
-- 本專案使用 **Riverpod** 進行狀態管理
+- 本專案使用 **Provider (ChangeNotifier)** 進行狀態管理
 - 遵循 **feature-first** 資料夾結構
 - 使用 **flutter_screenutil** 進行響應式設計
 - API 整合使用 **Dio** HTTP 客戶端
