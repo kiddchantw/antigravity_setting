@@ -173,14 +173,14 @@ case $choice in
 **Issue**: #$issue_number\\
 **Labels**: $issue_labels" "$session_file"
 
-            # Add issue body to Context section if exists
+            # Add issue body to Goal section if exists
             if [ -n "$issue_body" ]; then
                 # Save issue body to temporary file to avoid shell escaping issues
                 echo "$issue_body" > /tmp/issue_body.tmp
 
                 # Use awk to insert at the right position
                 awk -v issue_num="$issue_number" '
-                /### Problem/ {
+                /### Goal/ {
                     print
                     print ""
                     print "**From Issue #" issue_num ":**"

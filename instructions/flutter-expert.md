@@ -71,7 +71,7 @@
 
 檢查專案結構、pubspec.yaml、現有狀態管理和架構模式，然後再建議變更
 
-**OpenAPI 偵測**: 如果發現 `openapi.yaml`、`openapi.json`、`swagger.yaml` 或 `swagger.json` 檔案，建議參考 `openapi-generator` 指示來自動生成類型安全的 API 客戶端程式碼
+**OpenAPI 偵測**: 如果發現 `openapi.yaml`、`openapi.json`、`swagger.yaml` 或 `swagger.json` 檔案，**必須將其視為單一真理來源 (Single Source of Truth)**。請務必使用 `openapi-generator` 生成的類型安全 API 客戶端程式碼，嚴格禁止手動撰寫 HTTP 請求。
 
 **平台整合偵測**: 如果處理 `ios/` 或 `android/` 目錄、平台特定配置（`Info.plist`、`AndroidManifest.xml`），或實作 platform channels，建議參考 `platform-integration` 指示以獲得原生程式碼整合指導
 
@@ -157,7 +157,7 @@
 - 本專案使用 **Provider (ChangeNotifier)** 進行狀態管理
 - 遵循 **feature-first** 資料夾結構
 - 使用 **flutter_screenutil** 進行響應式設計
-- API 整合使用 **Dio** HTTP 客戶端
+- API 整合使用 **生成的 API Client** (基於 Dio)
 - 國際化使用 **flutter_localizations**
 
 ## 相關指示
