@@ -10,12 +10,13 @@
 > 
 > **正確使用流程**：
 > ```bash
-> # 1. 先建立 .agent 資料夾
-> mkdir -p .agent/{instructions,workflows,scripts,templates}
-> 
-> # 2. 然後 git clone 此專案
+
+> # 1.先 git clone 此專案
 > git clone <repository-url>
 > ```
+> # 2. 改名 .agent 資料夾
+> 
+> mv antigravity_setting .agent
 
 本目錄包含跨 AI Agent 通用的配置、指令、工作流程和模板。
 
