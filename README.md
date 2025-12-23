@@ -169,7 +169,10 @@ Run: .agent/scripts/create-session.sh
 | `/建立session` | 建立開發 Session | 開始新功能開發時使用 |
 | `/封存session` | 封存 Session | 完成功能開發後使用 |
 | `/更新changelog` | 更新 Changelog | 準備發布新版本時使用 |
+| `/更新openapi_yaml` | 更新 OpenAPI 規格 | 從 Laravel 產生 OpenAPI 並同步到 Flutter |
 | `/init-docs` | 初始化文檔結構 | 新專案初始化時使用 |
+
+> **⚠️ 重要提醒**：使用 `/更新openapi_yaml` workflow 時，請先檢查並修正 `.agent/workflows/更新openapi_yaml.md` 中的專案路徑，確保路徑符合您的實際專案結構。
 
 **執行方式**：
 - **Gemini**: 直接輸入 slash command（例如 `/建立session`）
