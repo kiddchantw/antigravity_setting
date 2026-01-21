@@ -26,10 +26,10 @@
 .agent/
 ├── instructions/     # AI 行為準則與專業指令
 ├── workflows/        # 可執行的工作流程 (Slash Commands)
-├── scripts/          # Shell 腳本工具
-├── templates/        # 文檔模板
 └── README.md         # 本文件
 ```
+
+> 補充：可重複使用的 Shell 腳本與模板已抽成獨立目錄 `agent-scripts/`（在專案根目錄同層），避免把腳本綁死在 `.agent` repo 內。
 
 ## 🤖 不同 AI Agent 使用指南
 
@@ -60,7 +60,7 @@
 @.agent/instructions/flutter-expert.md
 
 # 執行腳本
-Run: .agent/scripts/create-session.sh
+Run: agent-scripts/create-session.sh
 ```
 
 **最佳實踐**：
@@ -90,10 +90,10 @@ Run: .agent/scripts/create-session.sh
 **執行腳本**：
 ```bash
 # 在 Cursor 終端機中執行
-./.agent/scripts/create-session.sh
+./agent-scripts/create-session.sh
 
 # 快速建立：直接傳入 Goal
-./.agent/scripts/create-session.sh 實作使用者登入功能
+./agent-scripts/create-session.sh 實作使用者登入功能
 ```
 
 **注意事項**：
@@ -116,7 +116,7 @@ Run: .agent/scripts/create-session.sh
 
 **建議**：
 - 在程式碼中加入註解引用相關指令
-- 手動執行 `.agent/scripts/` 中的腳本
+- 手動執行 `agent-scripts/` 中的腳本
 
 ---
 
@@ -176,12 +176,12 @@ Run: .agent/scripts/create-session.sh
 
 **執行方式**：
 - **Gemini**: 直接輸入 slash command（例如 `/建立session`）
-- **其他 AI**: 手動執行對應的 script（例如 `.agent/scripts/create-session.sh`）
+- **其他 AI**: 手動執行對應的 script（例如 `agent-scripts/create-session.sh`）
 
 **快速建立 Session**：
 ```bash
 # 直接傳入 Goal（需求描述），腳本會自動生成檔名
-.agent/scripts/create-session.sh 實作離線同步功能
+agent-scripts/create-session.sh 實作離線同步功能
 
 # 腳本會：
 # 1. 將「實作離線同步功能」寫入 Goal 段落
@@ -207,13 +207,13 @@ Run: .agent/scripts/create-session.sh
 **執行方式**：
 ```bash
 # 從專案根目錄執行
-./.agent/scripts/create-session.sh
+./agent-scripts/create-session.sh
 
 # 或從子專案執行
-../.agent/scripts/create-session.sh
+../agent-scripts/create-session.sh
 
 # 快速建立：直接傳入 Goal（需求描述）
-./.agent/scripts/create-session.sh 實作使用者登入功能
+./agent-scripts/create-session.sh 實作使用者登入功能
 # 會自動生成檔名（例如：user-login）
 # 建立 sessions/YYYY-MM/DD-user-login.md
 # Goal 段落已填入「實作使用者登入功能」
@@ -234,6 +234,8 @@ Run: .agent/scripts/create-session.sh
 
 **使用方式**：
 - 執行 `/init-docs` 或 `init-docs.sh` 會自動複製這些模板到專案中
+  - 腳本位置：`agent-scripts/init-docs.sh`
+  - 模板位置：`agent-scripts/templates/`
 
 ---
 
@@ -242,7 +244,7 @@ Run: .agent/scripts/create-session.sh
 ### 1. 專案初始化
 ```bash
 # 執行文檔初始化
-./.agent/scripts/init-docs.sh .
+./agent-scripts/init-docs.sh .
 
 # 或使用 workflow (Gemini)
 /init-docs
@@ -252,17 +254,17 @@ Run: .agent/scripts/create-session.sh
 ```bash
 # 方式 1: 快速建立（推薦）
 # 直接傳入 Goal（需求描述），腳本會自動生成檔名並填入 Goal
-./.agent/scripts/create-session.sh 實作商品搜尋功能
+./agent-scripts/create-session.sh 實作商品搜尋功能
 
 # 方式 2: 互動式建立
 /建立session  # Gemini
 # 或
-./.agent/scripts/create-session.sh  # 其他 AI
+./agent-scripts/create-session.sh  # 其他 AI
 
 # 2. 填寫 Session 內容並決定是否需要新 branch
 # - 如果不需要新 branch：直接在當前 branch 開發
 # - 如果需要新 branch：在 session 中更新 Branch 欄位，然後執行：
-./.agent/scripts/create-branch.sh docs/sessions/YYYY-MM/DD-feature-name.md
+./agent-scripts/create-branch.sh docs/sessions/YYYY-MM/DD-feature-name.md
 
 # 3. 引用相關指令
 @flutter-expert  # 如果是 Flutter 開發
@@ -272,7 +274,7 @@ Run: .agent/scripts/create-session.sh
 # 5. 完成後封存
 /封存session  # Gemini
 # 或
-./.agent/scripts/archive-session.sh  # 其他 AI
+./agent-scripts/archive-session.sh  # 其他 AI
 ```
 
 ### 3. 發布新版本
@@ -280,7 +282,7 @@ Run: .agent/scripts/create-session.sh
 # 更新 Changelog
 /更新changelog  # Gemini
 # 或
-./.agent/scripts/update-changelog.sh  # 其他 AI
+./agent-scripts/update-changelog.sh  # 其他 AI
 ```
 
 ---
@@ -330,9 +332,9 @@ description: 工作流程簡短描述
 ```
 
 ### 新增 Script
-1. 在 `scripts/` 中創建新的 `.sh` 檔案
-2. 加入執行權限：`chmod +x .agent/scripts/your-script.sh`
-3. 在 `workflows/` 中創建對應的 workflow
+1. 在專案根目錄的 `agent-scripts/` 中創建新的 `.sh` 檔案
+2. 加入執行權限：`chmod +x agent-scripts/your-script.sh`
+3. 在 `.agent/workflows/` 中創建對應的 workflow
 
 ---
 

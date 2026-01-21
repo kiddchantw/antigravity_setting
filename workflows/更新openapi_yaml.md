@@ -11,47 +11,55 @@ description: 從 Laravel 專案產生 OpenAPI 規格，並自動產生 Flutter �
 
 ## 🚀 執行步驟
 
-### 方式 A: 使用自動化腳本（推薦）
+### ⭐ 推薦方式：使用自動化腳本（一鍵完成）
 
-從 Flutter 專案根目錄執行：
-
+優先使用專案內的腳本：
 ```bash
-cd HoldYourBeer-Flutter
+cd a126_kompraa_flutter
 ./scripts/generate-api-client.sh
 ```
 
-腳本會自動完成以下步驟：
-1. 檢查 openapi.yaml 是否存在
-2. 清理舊的產生程式碼
-3. 執行 OpenAPI Generator
-4. 執行 build_runner 產生必要的程式碼
+**腳本會自動完成以下所有步驟：**
+1. ✅ 從 Laravel 專案產生 OpenAPI 規格（透過 Docker）
+2. ✅ 複製 openapi.yaml 到 Flutter 專案
+3. ✅ 清理舊的產生程式碼
+4. ✅ 執行 OpenAPI Generator
+5. ✅ 執行 build_runner 產生必要的程式碼
+6. ✅ 執行 Flutter 測試確認整合正常
 
-### 方式 B: 手動執行（逐步控制）
+---
+
+### 📖 參考：手動執行步驟（進階使用者）
+
+<details>
+<summary>點擊展開查看手動執行的詳細步驟</summary>
+
+如果您需要逐步控制每個環節，可以手動執行以下步驟：
 
 #### 1. 產生 OpenAPI 規格
 
-從專案根目錄 (`beer/`) 執行：
+從專案根目錄 (`a126/`) 執行：
 
 ```bash
-cd HoldYourBeer
-docker-compose -f ../../laradock/docker-compose.yml exec -w /var/www/beer/HoldYourBeer workspace php artisan scribe:generate --force
+cd A126-kompraa_web
+docker-compose -f ../../laradock/docker-compose.yml exec -w /var/www/a126/A126-kompraa_web workspace php artisan scribe:generate --force
 ```
 
 這會產生 OpenAPI 規格檔案到：
-- `HoldYourBeer/storage/app/private/scribe/openapi.yaml` ⭐ **新位置**
-- `HoldYourBeer/public/docs/` (文檔)
+- `A126-kompraa_web/public/docs/openapi.yaml` ⭐ **OpenAPI 規格**
+- `A126-kompraa_web/public/docs/` (HTML 文檔)
 
 #### 2. 複製 openapi.yaml 到 Flutter 專案
 
 ```bash
-cd ..  # 回到 beer/ 目錄
-cp HoldYourBeer/storage/app/private/scribe/openapi.yaml HoldYourBeer-Flutter/openapi.yaml
+cd ..  # 回到 a126/ 目錄
+cp A126-kompraa_web/public/docs/openapi.yaml a126_kompraa_flutter/openapi.yaml
 ```
 
 #### 3. 產生 Flutter API 客戶端（OpenAPI Generator）
 
 ```bash
-cd HoldYourBeer-Flutter
+cd a126_kompraa_flutter
 
 # 清理舊的產生程式碼（可選）
 rm -rf lib/generated/api
@@ -62,7 +70,7 @@ openapi-generator generate \
   -g dart-dio \
   -o lib/generated/api \
   --skip-validate-spec \
-  --additional-properties=pubName=holdyourbeer_api,pubVersion=1.0.0,dateLibrary=core
+  --additional-properties=pubName=kompraa_api,pubVersion=1.0.0,dateLibrary=core
 ```
 
 #### 4. 執行 build_runner（產生 built_value 程式碼）
@@ -72,11 +80,20 @@ flutter pub get
 flutter packages pub run build_runner build --delete-conflicting-outputs
 ```
 
+#### 5. 執行 Flutter 測試
+
+```bash
+flutter test
+```
+
+</details>
+
+
 ## 📝 重要變更說明
 
 ### ⚠️ 架構變更（2025-12-03）
 
-**HoldYourBeer Flutter 專案已從 Retrofit 遷移至 OpenAPI Generator：**
+**A126 Kompraa Flutter 專案已從 Retrofit 遷移至 OpenAPI Generator：**
 
 - ✅ **Single Source of Truth**: `openapi.yaml` 是唯一的 API 定義來源
 - ✅ **自動產生客戶端**: 從 OpenAPI 規格自動產生型別安全的 API 客戶端
@@ -86,14 +103,14 @@ flutter packages pub run build_runner build --delete-conflicting-outputs
 ### 產生的檔案位置
 
 ```
-HoldYourBeer-Flutter/
+a126_kompraa_flutter/
 ├── openapi.yaml                  # OpenAPI 規格（從 Laravel 複製）
 ├── lib/generated/api/            # 產生的 API 客戶端程式碼
 │   ├── lib/
-│   │   ├── holdyourbeer_api.dart    # 主要入口
+│   │   ├── kompraa_api.dart         # 主要入口
 │   │   └── src/
-│   │       ├── api/              # 6 個 API 類別
-│   │       ├── model/            # 60+ 資料模型
+│   │       ├── api/              # API 類別
+│   │       ├── model/            # 資料模型
 │   │       └── serializers.dart  # built_value serializers
 │   └── doc/                      # API 文檔
 ```
