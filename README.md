@@ -160,47 +160,6 @@ graph TB
 
 ---
 
-## 🤖 .claude/ Claude Code 系統
-
-位置：`../.claude/`
-
-此目錄為 **Claude Code 專用**，包含自動觸發的 AI Agents 與可呼叫的 Skills。
-
-### Agents (自動觸發)
-
-- `laravel-expert.md` - Laravel 開發專家
-- `laravel-reviewer.md` - Laravel 程式碼審查
-- `flutter-expert.md` - Flutter 開發專家
-- `flutter-reviewer.md` - Flutter 程式碼審查
-
-**特點**：
-- ✅ 根據對話內容自動啟動
-- ✅ 包含詳細的檢查清單
-- ✅ 整合專案 conventions
-
-### Skills (手動呼叫)
-
-- `/create-session` - 建立開發 Session
-- `/tdd-workflow` - Red-Green-Refactor TDD 循環
-- `/test-planning` - 測試規劃與設計
-- `/git-organize-commits` - Git 提交整理（繁中 Conventional Commits）
-- `/laravel-security-review` - Laravel 安全審查
-- `/laravel-performance-review` - Laravel 效能審查
-- `/flutter-security-review` - Flutter 安全審查
-- `/flutter-performance-review` - Flutter 效能審查
-- `/flutter-openapi-generator` - OpenAPI Client 生成
-- `/flutter-platform-integration` - 平台整合
-- `/react-best-practices` - React/Next.js 最佳實踐
-
-**特點**：
-- ✅ 完整的工作流程定義 (`SKILL.md`)
-- ✅ 包含範例與文檔資源
-- ✅ 呼叫 `agent-scripts/*.sh` 執行操作
-
-**詳細說明**：請參考 [.claude/README.md](../.claude/README.md)
-
----
-
 ## 🎯 使用場景對照
 
 ### Scenario 1: 建立新的開發 Session
@@ -246,25 +205,6 @@ graph TB
 /建立session
 /封存session
 /更新changelog
-```
-
----
-
-### Claude Code ✅ 完整支援
-
-**推薦使用**：
-- 使用 `.claude/skills/` 中的 Skills（功能更完整）
-- `.agent/instructions/` 可作為快速參考
-
-**使用方式**：
-```
-# 使用 Claude Code Skills
-/create-session
-/laravel-security-review
-/git-organize-commits
-
-# 或手動引用精簡版指令
-@.agent/instructions/laravel-expert.md
 ```
 
 ---
