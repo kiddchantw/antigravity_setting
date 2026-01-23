@@ -1,39 +1,237 @@
 # .agent Directory
 
-## 前置作業 
-> 
-> 請確保本地專案中存在 `.agent` 資料夾。
-> 
-> - **位置**: 專案根目錄 (例如: `/Users/kiddchan/Desktop/laraDock/a126/.agent`)
-> - **用途**: 存放 AI Agent 的配置、指令、工作流程和模板
-> - **必要性**: Antigravity 會自動載入此目錄中的 `instructions/` 和 `workflows/`
-> 
-> **正確使用流程**：
-> ```bash
+本目錄為 **跨 AI Agent 通用的配置與工作流程系統**，支援 Antigravity (Gemini)、Claude Code、Cursor 等 AI 工具。
 
-> # 1.先 git clone 此專案
-> git clone <repository-url>
-> ```
-> # 2. 改名 .agent 資料夾
-> 
-> mv antigravity_setting .agent
+---
 
-本目錄包含跨 AI Agent 通用的配置、指令、工作流程和模板。
-
-## 📂 目錄結構
+## 📁 目錄結構
 
 ```
 .agent/
-├── instructions/     # AI 行為準則與專業指令
-├── workflows/        # 可執行的工作流程 (Slash Commands)
-├── scripts/          # Shell 腳本工具
-├── templates/        # 文檔模板
-└── README.md         # 本文件
+├── README.md           # 本文件 (系統總覽)
+├── instructions/       # AI 行為準則與專業指令
+├── workflows/          # 可執行的工作流程 (Slash Commands)
+├── scripts/            # 輔助腳本 (少量，主要在 agent-scripts/)
+└── templates/          # 文檔模板片段 (主要在 agent-scripts/templates/)
 ```
 
-## 🤖 不同 AI Agent 使用指南
+---
 
-### Gemini (Antigravity) ✅ 原生支援
+## 🏗️ 三層架構關係
+
+本專案採用**三層配置架構**，各司其職：
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│ .agent/                                                     │
+│ 📋 跨 AI 工具通用配置                                         │
+│ - Antigravity (Gemini) 原生支援                              │
+│ - 精簡版 Instructions                                        │
+│ - Slash Command Workflows                                   │
+└─────────────────────────────────────────────────────────────┘
+                            ↓ 呼叫
+┌─────────────────────────────────────────────────────────────┐
+│ agent-scripts/                                              │
+│ 🛠️ 共享自動化腳本與模板                                        │
+│ - Shell Scripts (*.sh)                                      │
+│ - 文檔模板 (templates/*.md)                                  │
+│ - 所有 AI 工具與系統共用                                       │
+└─────────────────────────────────────────────────────────────┘
+                            ↑ 參照
+┌─────────────────────────────────────────────────────────────┐
+│ .claude/                                                    │
+│ 🤖 Claude Code 專用系統                                       │
+│ - AI Agents (隱式觸發的專家角色)                               │
+│ - Skills (顯式呼叫的工作流程)                                  │
+│ - 詳細版檢查清單與範例                                         │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### 三層分工
+
+| 層級 | 用途 | 適用工具 | 特點 |
+|------|------|----------|------|
+| **`.agent/`** | 跨工具通用配置 | Antigravity, Cursor, Claude Code | 精簡、slash commands |
+| **`agent-scripts/`** | 共享執行資源 | 所有工具 | 實際執行的腳本與模板 |
+| **`.claude/`** | Claude Code 專用 | Claude Code | 自動觸發、詳細檢查清單 |
+
+---
+
+## 🔗 互動關係圖
+
+```mermaid
+graph TB
+    subgraph AgentDir[".agent/ - 跨工具配置"]
+        Instructions["instructions/<br/>精簡版指令"]
+        Workflows["workflows/<br/>Slash Commands"]
+    end
+
+    subgraph Scripts["agent-scripts/ - 共享資源"]
+        ShellScripts["*.sh<br/>Shell Scripts"]
+        Templates["templates/<br/>文檔模板"]
+    end
+
+    subgraph ClaudeDir[".claude/ - Claude Code 專用"]
+        Agents["agents/<br/>AI 專家角色"]
+        Skills["skills/<br/>工作流程"]
+    end
+
+    Workflows -->|執行| ShellScripts
+    Workflows -->|填寫| Templates
+
+    Skills -->|執行| ShellScripts
+    Skills -->|填寫| Templates
+    Skills -->|遵循| Agents
+
+    Instructions -.->|精簡版| Agents
+```
+
+---
+
+## 📂 .agent/ 核心內容
+
+### 📚 Instructions (指令檔案)
+
+位置：`.agent/instructions/`
+
+| 檔案 | 用途 | Claude Code 對應 |
+|------|------|------------------|
+| `laravel-expert.md` | Laravel 開發規範 | `.claude/agents/laravel-expert.md` |
+| `flutter-expert.md` | Flutter 開發規範 | `.claude/agents/flutter-expert.md` |
+| `git-commit-tw.md` | Git Commit 繁中規範 | `.claude/agents/` (整合在各 agent) |
+| `security-review-laravel.md` | Laravel 安全審查 | `.claude/skills/laravel-security-review/` |
+| `security-review-flutter.md` | Flutter 安全審查 | `.claude/skills/flutter-security-review/` |
+| `performance-review.md` | 效能優化指南 | `.claude/skills/*-performance-review/` |
+
+**特點**：
+- ✅ 精簡版，token 消耗低
+- ✅ 適合日常開發引用
+- ✅ Antigravity 自動載入
+
+---
+
+### ⚡ Workflows (工作流程)
+
+位置：`.agent/workflows/`
+
+| Slash Command | 功能 | 呼叫腳本 |
+|--------------|------|----------|
+| `/建立session` | 建立開發 Session | `agent-scripts/create-session.sh` |
+| `/封存session` | 封存 Session | `agent-scripts/archive-session.sh` |
+| `/更新changelog` | 更新 Changelog | `agent-scripts/update-changelog.sh` |
+| `/init-docs` | 初始化文檔結構 | `agent-scripts/init-docs.sh` |
+| `/更新openapi_yaml` | 更新 OpenAPI 規格 | (workflow 內建邏輯) |
+
+**執行方式**：
+- **Antigravity (Gemini)**: 直接輸入 slash command（例如 `/建立session`）
+- **Claude Code**: 使用對應的 Skill（例如 `/create-session`）
+- **其他 AI**: 手動執行對應的 script（例如 `./agent-scripts/create-session.sh`）
+
+---
+
+## 🛠️ agent-scripts/ 共享資源
+
+位置：`../agent-scripts/`
+
+此目錄包含**所有 AI 工具共用的自動化腳本與文檔模板**。
+
+### 可用腳本
+
+| 腳本 | 功能 | 被呼叫自 |
+|------|------|----------|
+| `create-session.sh` | 建立開發 Session | `.agent/workflows/`, `.claude/skills/` |
+| `archive-session.sh` | 封存 Session | `.agent/workflows/`, `.claude/skills/` |
+| `create-branch.sh` | 建立 Git Branch | 手動執行 |
+| `update-changelog.sh` | 更新 Changelog | `.agent/workflows/` |
+| `init-docs.sh` | 初始化文檔結構 | `.agent/workflows/` |
+| `verify-refactoring.sh` | 驗證重構完整性 | 手動執行 |
+| `sync-config-repos.sh` | 同步配置 repos | 手動執行 |
+
+### 可用模板
+
+| 模板 | 用途 | 使用者 |
+|------|------|--------|
+| `session.md` | Session 文檔模板 | `create-session.sh` |
+| `GUIDE.md` | Session 使用指南 | `init-docs.sh` |
+| `INDEX-*.md` | 索引文檔模板 | `init-docs.sh` |
+| `GEMINI.md` | 專案 AI 配置模板 | `init-docs.sh` |
+
+**詳細說明**：請參考 [agent-scripts/README.md](../agent-scripts/README.md)
+
+---
+
+## 🤖 .claude/ Claude Code 系統
+
+位置：`../.claude/`
+
+此目錄為 **Claude Code 專用**，包含自動觸發的 AI Agents 與可呼叫的 Skills。
+
+### Agents (自動觸發)
+
+- `laravel-expert.md` - Laravel 開發專家
+- `laravel-reviewer.md` - Laravel 程式碼審查
+- `flutter-expert.md` - Flutter 開發專家
+- `flutter-reviewer.md` - Flutter 程式碼審查
+
+**特點**：
+- ✅ 根據對話內容自動啟動
+- ✅ 包含詳細的檢查清單
+- ✅ 整合專案 conventions
+
+### Skills (手動呼叫)
+
+- `/create-session` - 建立開發 Session
+- `/tdd-workflow` - Red-Green-Refactor TDD 循環
+- `/test-planning` - 測試規劃與設計
+- `/git-organize-commits` - Git 提交整理（繁中 Conventional Commits）
+- `/laravel-security-review` - Laravel 安全審查
+- `/laravel-performance-review` - Laravel 效能審查
+- `/flutter-security-review` - Flutter 安全審查
+- `/flutter-performance-review` - Flutter 效能審查
+- `/flutter-openapi-generator` - OpenAPI Client 生成
+- `/flutter-platform-integration` - 平台整合
+- `/react-best-practices` - React/Next.js 最佳實踐
+
+**特點**：
+- ✅ 完整的工作流程定義 (`SKILL.md`)
+- ✅ 包含範例與文檔資源
+- ✅ 呼叫 `agent-scripts/*.sh` 執行操作
+
+**詳細說明**：請參考 [.claude/README.md](../.claude/README.md)
+
+---
+
+## 🎯 使用場景對照
+
+### Scenario 1: 建立新的開發 Session
+
+| 工具 | 操作方式 | 實際執行 |
+|------|----------|----------|
+| **Antigravity** | `/建立session` | `.agent/workflows/建立session.md` → `agent-scripts/create-session.sh` |
+| **Claude Code** | `/create-session` | `.claude/skills/create-session/SKILL.md` → `agent-scripts/create-session.sh` |
+| **Cursor/其他** | `./agent-scripts/create-session.sh` | 直接執行腳本 |
+
+### Scenario 2: Laravel 安全審查
+
+| 工具 | 操作方式 | 使用的指令/資源 |
+|------|----------|-----------------|
+| **Antigravity** | 引用 `@.agent/instructions/security-review-laravel.md` | 精簡版檢查清單 |
+| **Claude Code** | `/laravel-security-review` | `.claude/skills/laravel-security-review/` (詳細版) |
+| **Cursor/其他** | 手動引用 `.agent/instructions/security-review-laravel.md` | 精簡版檢查清單 |
+
+### Scenario 3: Git Commit 整理
+
+| 工具 | 操作方式 | 實際執行 |
+|------|----------|----------|
+| **Antigravity** | 引用 `@.agent/instructions/git-commit-tw.md` | 手動遵循規範 |
+| **Claude Code** | `/git-organize-commits` | `.claude/skills/git-organize-commits/` (自動整理) |
+| **Cursor/其他** | 引用 `.agent/instructions/git-commit-tw.md` | 手動遵循規範 |
+
+---
+
+## 🤖 不同 AI 工具使用指南
+
+### Antigravity (Gemini) ✅ 原生支援
 
 **自動載入**：
 - `instructions/` 中的檔案會自動作為系統指令
@@ -54,52 +252,42 @@
 
 ### Claude Code ✅ 完整支援
 
-**手動引用**：
-```
-# 在對話中引用指令
-@.agent/instructions/flutter-expert.md
+**推薦使用**：
+- 使用 `.claude/skills/` 中的 Skills（功能更完整）
+- `.agent/instructions/` 可作為快速參考
 
-# 執行腳本
-Run: .agent/scripts/create-session.sh
+**使用方式**：
 ```
+# 使用 Claude Code Skills
+/create-session
+/laravel-security-review
+/git-organize-commits
 
-**最佳實踐**：
-- 在專案 `GEMINI.md` 中說明可用的 instructions
-- 需要時手動引用相關指令檔案
+# 或手動引用精簡版指令
+@.agent/instructions/laravel-expert.md
+```
 
 ---
 
 ### Cursor ✅ 完整支援（需配置）
 
 **設定方式**：
-
 1. 在專案根目錄創建 `.cursorrules` 檔案（已自動建立）
-
 2. Cursor 會在每次對話時自動載入 `.cursorrules` 中的指令
 
 **使用方式**：
 
 **引用 Instructions**：
-- Cursor 會自動載入 `.cursorrules` 中的基本指令
-- 需要完整指令時，在對話中手動引用：
-  ```
-  請參考 .agent/instructions/flutter-expert.md 中的規範
-  ```
-- 或直接要求 AI 讀取該檔案
+```
+請參考 .agent/instructions/flutter-expert.md 中的規範
+```
 
 **執行腳本**：
 ```bash
 # 在 Cursor 終端機中執行
-./.agent/scripts/create-session.sh
-
-# 快速建立：直接傳入 Goal
-./.agent/scripts/create-session.sh 實作使用者登入功能
+./agent-scripts/create-session.sh
+./agent-scripts/archive-session.sh
 ```
-
-**注意事項**：
-- Cursor 不支援自動執行 workflows 的 slash commands
-- 需要手動執行對應的腳本
-- `.cursorrules` 中的 `@` 引用語法不會自動讀取檔案內容，需要手動引用
 
 ---
 
@@ -116,7 +304,7 @@ Run: .agent/scripts/create-session.sh
 
 **建議**：
 - 在程式碼中加入註解引用相關指令
-- 手動執行 `.agent/scripts/` 中的腳本
+- 手動執行 `agent-scripts/` 中的腳本
 
 ---
 
@@ -133,223 +321,132 @@ Run: .agent/scripts/create-session.sh
 
 ---
 
-## 📚 Instructions (指令檔案)
+## 💡 最佳實踐
 
-| 檔案 | 用途 | 適用情境 |
-|------|------|---------|
-| `flutter-expert.md` | Flutter 開發規範 | 開發 Flutter 功能時 |
-| `git-commit-tw.md` | Git Commit 規範 | 提交程式碼時 |
-| `security-review.md` | 安全審查指南 | 審查安全性問題時 |
-| `performance-review.md` | 效能優化指南 | 優化效能時 |
+### 1. 選擇適合的層級
 
-**使用時機**：
-- 開發新功能前，引用相關的 instruction
-- 例如：開發 Flutter UI 時引用 `@flutter-expert`
+- **日常開發**: 使用 `.agent/instructions/`（token 消耗較低）
+- **深度審查**: 使用 `.claude/skills/`（詳細檢查清單）
+- **腳本執行**: 直接呼叫 `agent-scripts/*.sh`
 
-## 🔗 與 `.claude/` 資料夾的關係
+### 2. 專案初始化
 
-本專案同時包含 `.agent/` 和 `.claude/` 兩套指令系統：
-
-### `.agent/` vs `.claude/`
-- **`.agent/`**：跨 AI Agent 通用，精簡版指令，適合日常開發
-- **`.claude/`**：Claude Code 專用，詳細版指令，包含完整的檢查清單和範例
-
-### 使用建議
-- **日常開發**：使用 `.agent/instructions/`（token 消耗較低）
-- **深度審查**：需要詳細檢查清單時，引用 `.claude/skills/` 中的對應 skill
-- **Claude Code 使用者**：`.claude/` 會自動觸發，無需手動引用
-- **Cursor 使用者**：可手動引用 `.claude/` 內容，但不會自動觸發
-
----
-
-## ⚡ Workflows (工作流程)
-
-| Slash Command | 功能 | 說明 |
-|--------------|------|------|
-| `/建立session` | 建立開發 Session | 開始新功能開發時使用 |
-| `/封存session` | 封存 Session | 完成功能開發後使用 |
-| `/更新changelog` | 更新 Changelog | 準備發布新版本時使用 |
-| `/更新openapi_yaml` | 更新 OpenAPI 規格 | 從 Laravel 產生 OpenAPI 並同步到 Flutter |
-| `/init-docs` | 初始化文檔結構 | 新專案初始化時使用 |
-
-> **⚠️ 重要提醒**：使用 `/更新openapi_yaml` workflow 時，請先檢查並修正 `.agent/workflows/更新openapi_yaml.md` 中的專案路徑，確保路徑符合您的實際專案結構。
-
-**執行方式**：
-- **Gemini**: 直接輸入 slash command（例如 `/建立session`）
-- **其他 AI**: 手動執行對應的 script（例如 `.agent/scripts/create-session.sh`）
-
-**快速建立 Session**：
-```bash
-# 直接傳入 Goal（需求描述），腳本會自動生成檔名
-.agent/scripts/create-session.sh 實作離線同步功能
-
-# 腳本會：
-# 1. 將「實作離線同步功能」寫入 Goal 段落
-# 2. 自動生成 feature-name（例如：offline-sync）
-# 3. 建立 sessions/YYYY-MM/DD-offline-sync.md
-# 4. 你可以直接在 session 中規劃實作細節
-
-# 如果想自訂檔名，腳本會提示你輸入
-```
-
----
-
-## 🛠️ Scripts (腳本工具)
-
-| 腳本 | 功能 |
-|------|------|
-| `create-session.sh` | 建立新的開發 Session |
-| `create-branch.sh` | 從 Session 建立新的 Git Branch |
-| `archive-session.sh` | 封存完成的 Session |
-| `update-changelog.sh` | 更新專案 Changelog |
-| `init-docs.sh` | 初始化文檔結構 |
-
-**執行方式**：
-```bash
-# 從專案根目錄執行
-./.agent/scripts/create-session.sh
-
-# 或從子專案執行
-../.agent/scripts/create-session.sh
-
-# 快速建立：直接傳入 Goal（需求描述）
-./.agent/scripts/create-session.sh 實作使用者登入功能
-# 會自動生成檔名（例如：user-login）
-# 建立 sessions/YYYY-MM/DD-user-login.md
-# Goal 段落已填入「實作使用者登入功能」
-```
-
----
-
-## 📄 Templates (模板)
-
-| 模板 | 用途 |
-|------|------|
-| `session.md` | Session 文檔模板 |
-| `GUIDE.md` | Session 使用指南 |
-| `INDEX-product.md` | 產品功能索引 |
-| `INDEX-architecture.md` | 架構決策索引 |
-| `INDEX-decisions.md` | 技術決策索引 |
-| `GEMINI.md` | 專案 AI 配置模板 |
-
-**使用方式**：
-- 執行 `/init-docs` 或 `init-docs.sh` 會自動複製這些模板到專案中
-
----
-
-## 🎯 最佳實踐
-
-### 1. 專案初始化
 ```bash
 # 執行文檔初始化
-./.agent/scripts/init-docs.sh .
+./agent-scripts/init-docs.sh .
 
-# 或使用 workflow (Gemini)
+# 或使用 workflow (Antigravity)
 /init-docs
 ```
 
-### 2. 開發新功能
+### 3. 開發新功能
+
 ```bash
 # 方式 1: 快速建立（推薦）
-# 直接傳入 Goal（需求描述），腳本會自動生成檔名並填入 Goal
-./.agent/scripts/create-session.sh 實作商品搜尋功能
+./agent-scripts/create-session.sh 實作商品搜尋功能
 
-# 方式 2: 互動式建立
-/建立session  # Gemini
+# 方式 2: 使用 workflow (Antigravity)
+/建立session
+
+# 方式 3: 使用 skill (Claude Code)
+/create-session
+
+# 完成後封存
+./agent-scripts/archive-session.sh
 # 或
-./.agent/scripts/create-session.sh  # 其他 AI
-
-# 2. 填寫 Session 內容並決定是否需要新 branch
-# - 如果不需要新 branch：直接在當前 branch 開發
-# - 如果需要新 branch：在 session 中更新 Branch 欄位，然後執行：
-./.agent/scripts/create-branch.sh docs/sessions/YYYY-MM/DD-feature-name.md
-
-# 3. 引用相關指令
-@flutter-expert  # 如果是 Flutter 開發
-
-# 4. 開發...
-
-# 5. 完成後封存
-/封存session  # Gemini
-# 或
-./.agent/scripts/archive-session.sh  # 其他 AI
+/封存session  # Antigravity
 ```
 
-### 3. 發布新版本
+### 4. 發布新版本
+
 ```bash
 # 更新 Changelog
-/更新changelog  # Gemini
+./agent-scripts/update-changelog.sh
 # 或
-./.agent/scripts/update-changelog.sh  # 其他 AI
+/更新changelog  # Antigravity
 ```
 
 ---
 
 ## 🔄 跨專案共用
 
-本 `.agent/` 目錄位於 workspace 根目錄，可被多個子專案共用：
+本 `.agent/` 目錄可被多個子專案共用：
 
 ```
-beer/
-├── .agent/              # 共用配置
-├── HoldYourBeer/        # Laravel 專案
+q03/                     # Workspace 根目錄
+├── .agent/              # 跨工具通用配置
+├── .claude/             # Claude Code 專用配置
+├── agent-scripts/       # 共享腳本與模板
+│
+├── backend/             # Laravel 專案
+│   ├── CLAUDE.md        # 引用 ../.agent/
 │   └── GEMINI.md        # 引用 ../.agent/
-└── HoldYourBeer-Flutter/  # Flutter 專案
+│
+└── frontend/            # Flutter 專案
+    ├── CLAUDE.md        # 引用 ../.agent/
     └── GEMINI.md        # 引用 ../.agent/
 ```
 
 **在子專案中使用**：
 ```markdown
-# HoldYourBeer/GEMINI.md
+# backend/GEMINI.md
 ## 🤖 AI Agent Configuration
 
 ### 📚 Instructions
-- **Flutter 開發**: @[../.agent/instructions/flutter-expert.md]
+- **Laravel 開發**: @[../.agent/instructions/laravel-expert.md]
 - **Git Commits**: @[../.agent/instructions/git-commit-tw.md]
 ```
 
 ---
 
-## 📝 貢獻指南
+## 📝 維護指南
 
 ### 新增 Instruction
-1. 在 `instructions/` 中創建新的 `.md` 檔案
-2. 使用清晰的標題和結構
-3. 在專案 `GEMINI.md` 中加入引用
+
+1. 在 `.agent/instructions/` 中創建新的 `.md` 檔案（精簡版）
+2. 在 `.claude/agents/` 中創建對應的詳細版（如適用）
+3. 在專案 `GEMINI.md` / `CLAUDE.md` 中加入引用
 
 ### 新增 Workflow
-1. 在 `workflows/` 中創建新的 `.md` 檔案
-2. 使用 YAML frontmatter 格式：
-```markdown
----
-description: 工作流程簡短描述
----
 
-1. 步驟一
-2. 步驟二
-```
+1. 在 `.agent/workflows/` 中創建新的 `.md` 檔案
+2. 在 `agent-scripts/` 中創建對應的 `.sh` 腳本
+3. 在 `.claude/skills/` 中創建對應的 Skill（如適用）
 
-### 新增 Script
-1. 在 `scripts/` 中創建新的 `.sh` 檔案
-2. 加入執行權限：`chmod +x .agent/scripts/your-script.sh`
-3. 在 `workflows/` 中創建對應的 workflow
+### 新增 Skill (Claude Code 專用)
+
+1. 在 `.claude/skills/` 中創建新目錄
+2. 撰寫 `SKILL.md` 與資源文件
+3. 在 Skill 中參照 `agent-scripts/*.sh` 執行操作
 
 ---
 
 ## ❓ 常見問題
 
-**Q: 為什麼選擇 `.agent/` 這個名稱？**
-A: 以 `.` 開頭的目錄在 Unix 系統中是隱藏目錄，不會干擾專案主要結構，且 `agent` 清楚表明這是 AI Agent 的配置。
+**Q: `.agent/` 和 `.claude/` 有什麼不同？**
+A: `.agent/` 是跨工具通用配置（精簡版），`.claude/` 是 Claude Code 專用（詳細版，自動觸發）。
 
-**Q: 可以在不同專案間共用嗎？**
-A: 可以！將 `.agent/` 放在 workspace 根目錄，所有子專案都可以引用。
+**Q: `agent-scripts/` 的角色是什麼？**
+A: 共享的執行資源層，所有 AI 工具與配置系統都會呼叫這裡的腳本與模板。
 
-**Q: 如果 AI 不支援怎麼辦？**
-A: 手動複製相關指令內容到對話中，或在程式碼註解中引用相關規範。
+**Q: 我應該用哪個？**
+A:
+- Antigravity 用戶 → 使用 `.agent/`
+- Claude Code 用戶 → 使用 `.claude/skills/`（`.agent/` 作為快速參考）
+- Cursor 用戶 → 引用 `.agent/instructions/`，執行 `agent-scripts/*.sh`
 
 **Q: 需要加入版本控制嗎？**
 A: 建議加入！這樣團隊成員都能使用相同的 AI 配置。
 
 ---
 
-**Last Updated**: 2025-11-20
+## 📚 相關資源
+
+- **Claude Code 系統**: [../.claude/README.md](../.claude/README.md)
+- **共享腳本與模板**: [../agent-scripts/README.md](../agent-scripts/README.md)
+- **專案指引**: [../CLAUDE.md](../CLAUDE.md)
+- **使用範例**: [USAGE_EXAMPLE.md](USAGE_EXAMPLE.md)
+
+---
+
+**Last Updated**: 2026-01-23
